@@ -6,4 +6,3 @@ from wechatsogou.filecache import WechatCache
 
 __all__ = ['WechatSogouApi', 'WechatCache', 'mysql']
 
-__version__ = "1.1.7"

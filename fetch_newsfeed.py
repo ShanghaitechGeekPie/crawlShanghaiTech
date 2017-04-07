@@ -64,8 +64,8 @@ for item in publisher_list:
                 continue
             newsfeed_url = wechat_info['url'];
             newsfeed_list = wechats.get_gzh_message(url=newsfeed_url)
-            mysql.where_sql = " _id=%s" %(item['publisher_id'])
-            mysql.table('publisher_info').where({'_id':item['publisher_id']}).save({'newsfeed_url':wechat_info['url'],'logo_url':wechat_info['img'],'qr_url':wechat_info['qrcode']})
+            mysql.where_sql = " _id=%s" %(item['_id'])
+            mysql.table('publisher_info').where({'_id':item['_id']}).save({'newsfeed_url':wechat_info['url'],'logo_url':wechat_info['img'],'qr_url':wechat_info['qrcode']})
         #type==49表示是图文消息
         push_time = ''
         for newsfeed_item in newsfeed_list :
@@ -97,9 +97,12 @@ for item in publisher_list:
 
                 #如果想把文章下载到本地，请开启下面的语句,请确保已经安装：urllib2，httplib2，BeautifulSoup4
                 #返回值为下载的html文件路径，可以自己保存到数据库
-                index_html_path = wechats.down_html(article_info['yuan'],newsfeed_item['title'])
-
+                article_index = str(newsfeed_item['main'])
+                index_html_path = wechats.down_html(article_info['yuan'],article_index)
+                # print(type(newsfeed_item['main']))
+                # print(index_html_path)
                 mysql.table('newsfeed').add({'title':newsfeed_item['title'],
+                                                'index_html_path':index_html_path,
                                                 'source_url':sourceurl,
                                                 'content_url':article_info['yuan'],
                                                 'cover_url':newsfeed_item['cover'],
@@ -117,7 +120,7 @@ for item in publisher_list:
 
         #更新最新推送ID
         if(last_push_id < cur_push_id):
-            mysql.where_sql = " _id=%s" %(item['publisher_id'])
+            mysql.where_sql = " _id=%s" %(item['_id'])
             mysql.table('publisher_info').save({'last_push_id':cur_push_id,'last_push_time':push_time,'update_time':time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(time.time()))})
     except KeyboardInterrupt:
         break

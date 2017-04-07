@@ -32,17 +32,17 @@ publisher_list = mysql.find(0)
 
 
 now_time = datetime.datetime.now()
-yes_time = now_time + datetime.timedelta(days=-10) #只更新1天之内的数据，可以修改days=-2就是2天
+check_day = now_time + datetime.timedelta(days=-10) #只更新10天之内的数据，可以修改days=-1就是1天
 succ_count = 1
 
 for item in publisher_list:
     try:
-        #为了效率，首先查看该公众号是否有24小时之内的文章
         print(item['publisher_id'])
-        mysql.where_sql = "publisher_id=%d and date_time >'%s'" %(item['publisher_id'],yes_time)
-        print(mysql.where_sql)
-        newsfeed_time = mysql.table('newsfeed').find(1)
-        if not newsfeed_time :
+        mysql.where_sql = "publisher_id='%s' and date_time >'%s'" %(item['publisher_id'],check_day)
+        # print(mysql.where_sql)
+        newsfeed_new = mysql.table('newsfeed').find(1)
+        # print newsfeed_new;
+        if not newsfeed_new :
             continue
 
         print(item['name'])
@@ -63,7 +63,6 @@ for item in publisher_list:
             print(wechat_info)
             if not wechat_info.has_key('url') :
                 continue
-            print('guo qi sz chong xin huo qu success')
             newsfeed_url = wechat_info['url'];
             newsfeed_list = wechats.get_gzh_message(url=newsfeed_url)
             mysql.where_sql = " _id=%s" %(item['_id'])
@@ -71,17 +70,15 @@ for item in publisher_list:
         #type==49表示是图文消息
         # print('3')
         for newsfeed_item in newsfeed_list:
-            #只监控24小时之内的文章
-            if(newsfeed_item['datetime'] < time.mktime(yes_time.timetuple())):
+            if(newsfeed_item['datetime'] < time.mktime(check_day.timetuple())):
                 break
 
             if newsfeed_item['type'] == '49':
                 #获取文章数据
                 time.sleep(0.5)
                 article_info = wechats.deal_article(url=newsfeed_item['content_url'])
-                mysql.where_sql = "publisher_id=%d and push_id=%d and msg_index=%d" %(item['publisher_id'],newsfeed_item['push_id'],newsfeed_item['main'])
+                mysql.where_sql = "publisher_id='%s' and push_id='%s' and msg_index='%s'" %(item['publisher_id'],newsfeed_item['push_id'],newsfeed_item['main'])
                 print(mysql.where_sql)
-                # print('8')
                 newsfeed_data = mysql.table('newsfeed').find(1)
                 if not newsfeed_data :
                     print(u"公众号有新文章，请执行fetch_newsfeed.py进行抓取")
@@ -100,7 +97,6 @@ for item in publisher_list:
                                                 'read_count':int(article_info['comment']['read_num'])-read_count,
                                                 'like_count':int(article_info['comment']['like_num'])-like_count,
                                                 'comment_count': int(article_info['comment']['elected_comment_total_cnt'])-comment_count})
-                print('5')
             #更新文章总阅读数
             mysql.where_sql = " _id=%s" %(newsfeed_data['_id'])
             mysql.table('newsfeed').save({'read_count':int(article_info['comment']['read_num']),

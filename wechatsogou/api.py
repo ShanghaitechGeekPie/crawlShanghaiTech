@@ -715,8 +715,7 @@ class WechatSogouApi(WechatSogouBasic):
                     print("GB18030")
                     nickname = nickname.decode('utf-8','ignore').encode('GB18030','ignore')
 
-            dir = 'WeiXinGZH/' + nickname + '/' + ctime + '/' + dir_name + '/'
-            #dir = 'WeiXinGZH/' + dir_name + '/'
+            dir = 'contentDownloads/' + nickname + '/' + ctime + '/' + dir_name + '/'
             dir = dir.decode('gb2312','ignore')
             dir = dir.replace("?", "")
             dir = dir.replace("\\", "")
